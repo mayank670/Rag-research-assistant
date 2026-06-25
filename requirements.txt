@@ -1,0 +1,23 @@
+# Web framework
+flask>=3.0.0
+werkzeug>=3.0.0
+python-dotenv>=1.0.0
+
+# Google Gemini SDK
+# NOTE: google-generativeai was renamed to google-genai in 2024.
+# Install the version that works for you:
+#   pip install google-generativeai   (older SDK, API: import google.generativeai)
+#   pip install google-genai          (new SDK, different import style)
+# This project uses google-generativeai style imports.
+google-generativeai>=0.8.0
+
+# Vector store
+chromadb>=0.5.0
+
+# LangGraph workflow
+langgraph>=0.2.0
+langchain-core>=0.2.0
+
+# PDF parsing (PyMuPDF is faster; PyPDF2 is the fallback)
+PyMuPDF>=1.24.0
+PyPDF2>=3.0.0

@@ -1,0 +1,7 @@
+.env
+myenv/
+uploads/
+vectorstore/
+__pycache__/
+*.pyc
+tempCodeRunnerFile.py

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RAG Research Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Left Panel ──────────────────────────────────────────── -->
+  <aside class="left-panel">
+
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="#7C3AED" stroke-width="1.5"/>
+          <circle cx="20" cy="20" r="10" stroke="#A78BFA" stroke-width="1" stroke-dasharray="3 2"/>
+          <circle cx="20" cy="20" r="4" fill="#7C3AED"/>
+          <line x1="20" y1="2" x2="20" y2="8" stroke="#A78BFA" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="20" y1="32" x2="20" y2="38" stroke="#A78BFA" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="2" y1="20" x2="8" y2="20" stroke="#A78BFA" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="32" y1="20" x2="38" y2="20" stroke="#A78BFA" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">ResearchRAG</div>
+        <div class="brand-sub">Gemini · LangGraph · ChromaDB</div>
+      </div>
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="panel-section">
+      <div class="section-label">Documents</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept=".pdf" multiple hidden/>
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Drop PDFs here</div>
+        <div class="upload-sub">or click to browse</div>
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+          Choose Files
+        </button>
+      </div>
+      <div class="upload-progress" id="uploadProgress" style="display:none">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">Processing…</div>
+      </div>
+    </div>
+
+    <!-- Document List -->
+    <div class="panel-section" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Uploaded Files</span>
+        <span class="doc-count" id="docCount">0</span>
+      </div>
+      <div class="doc-list" id="docList">
+        <div class="empty-docs">No documents yet.<br/>Upload a PDF to begin.</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="panel-section">
+      <button class="action-btn primary" id="summaryBtn" onclick="generateSummary()" disabled>
+        <span>✨</span> Generate Summary
+      </button>
+      <button class="action-btn secondary" onclick="downloadChat()" style="margin-top:8px">
+        <span>⬇</span> Download Chat
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-item">
+        <span class="stat-val" id="statDocs">0</span>
+        <span class="stat-label">Docs</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-val" id="statChunks">0</span>
+        <span class="stat-label">Chunks</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-val" id="statMsgs">0</span>
+        <span class="stat-label">Messages</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Right Panel ─────────────────────────────────────────── -->
+  <main class="right-panel">
+
+    <!-- Header -->
+    <header class="chat-header">
+      <div class="header-left">
+        <h1 class="chat-title">Research Assistant</h1>
+        <div class="pipeline-badge">
+          <span class="pipe-step">Retrieve</span>
+          <span class="pipe-arrow">→</span>
+          <span class="pipe-step">Validate</span>
+          <span class="pipe-arrow">→</span>
+          <span class="pipe-step">Generate</span>
+          <span class="pipe-arrow">→</span>
+          <span class="pipe-step">Respond</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="api-status" id="apiStatus">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Checking…</span>
+        </div>
+        <button class="icon-btn" title="Clear chat" onclick="clearChat()">🗑</button>
+      </div>
+    </header>
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chatWindow">
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-graphic">
+          <div class="rag-flow">
+            <div class="flow-node">📄 PDF</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">✂️ Chunk</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">🧠 Embed</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">🔍 Retrieve</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">✨ Gemini</div>
+          </div>
+        </div>
+        <h2 class="welcome-title">Upload a PDF to get started</h2>
+        <p class="welcome-sub">Ask questions about your documents and get AI-powered answers with source citations.</p>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="fc-icon">🔍</div>
+            <div class="fc-title">Semantic Search</div>
+            <div class="fc-desc">ChromaDB finds the most relevant passages</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon">📌</div>
+            <div class="fc-title">Source Citations</div>
+            <div class="fc-desc">Every answer links back to specific pages</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon">🔄</div>
+            <div class="fc-title">LangGraph Pipeline</div>
+            <div class="fc-desc">Stateful multi-node RAG workflow</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-icon">📋</div>
+            <div class="fc-title">Auto Summary</div>
+            <div class="fc-desc">One-click executive summary of any document</div>
+          </div>
+        </div>
+      </div>
+      <div class="messages" id="messages"></div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea
+          id="questionInput"
+          class="question-input"
+          placeholder="Ask a question about your documents…"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="resizeInput(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="askQuestion()">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="input-hint">
+        <span>Enter to send · Shift+Enter for new line</span>
+        <span id="modelBadge" class="model-badge">gemini-2.5-flash · LangGraph RAG</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Summary Modal -->
+<div class="modal-backdrop" id="summaryModal" onclick="closeSummary()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3 class="modal-title">📋 Document Summary</h3>
+      <button class="modal-close" onclick="closeSummary()">✕</button>
+    </div>
+    <div class="modal-body" id="summaryBody">
+      <div class="summary-loading">
+        <div class="spinner"></div>
+        <span>Analysing your documents…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
