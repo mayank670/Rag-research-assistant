@@ -312,4 +312,5 @@ if __name__ == "__main__":
     print(f"   API key set    : {'✅' if GOOGLE_API_KEY else '❌  Set GOOGLE_API_KEY in .env'}")
     print(f"   Running at     : http://localhost:5000")
     print("=" * 40 + "\n")
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
